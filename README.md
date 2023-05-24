@@ -547,7 +547,7 @@ FROM STU
                         AND ENR.PR = 'I'
                         AND ENR.YR = @yr
                         AND day.DEL = 0
-                        AND DAY.HO NOT IN ('@', '##', '$')
+                        AND DAY.HO NOT IN ('@', '#', '$')
                         AND day.DT <= GETDATE()
                         AND DAY.DT BETWEEN ENR.ED AND ISNULL(ENR.LD, DATEADD(DAY, 14, GETDATE())))
           ON  STU.ID = ENR.ID
