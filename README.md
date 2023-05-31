@@ -1,5 +1,5 @@
 # Aeries Data Validations
-List of Data validations for the Aeries SIS
+List of Data validations for the Aeries SIS. Some district specific code numberings or namings might need to be changed in order to work properly.
 
 ## Validation Group:  ADSBully
 
@@ -25,9 +25,14 @@ SELECT
    ,'Incident Date: ' + CONVERT(VARCHAR, ADS.DT, 101) AS [Description]
    ,CONVERT(VARCHAR, ADS.DT, 101)                     AS [Date]
 FROM ADS
-WHERE '23' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+WHERE 
+    --23 - Bullying 48900(r)
+   '23' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+    --01 - Sexual Harrassment 48900(2)
     AND '01' NOT IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+    --02 - Hate Violence 48900(3)
     AND '02' NOT IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+    --03 - Harassment 48900(4)
     AND '03' NOT IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
     AND ADS.DT > '7/1/' + @yr
     AND ADS.SCL = @SchoolCode
@@ -146,9 +151,11 @@ SELECT
 FROM STU
     LEFT JOIN LOC
           ON  LOC.CD = STU.SC
+              --Short Name under school info needs to be filled in
               AND LOC.SNM <> ''
     LEFT JOIN LOC AS LOCNS
           ON  LOCNS.CD = STU.NS
+              --Short Name under school info needs to be filled in
               AND LOCNS.SNM <> ''
 WHERE STU.TG = '*'
     AND STU.NS <> STU.SC
@@ -176,6 +183,7 @@ WHERE STU.TG = '*'
 SELECT
     s1.ID                                                 AS [Student ID]
    ,s1.SC                                                 AS [SchoolCode]
+   --Short Name under school info needs to be filled in
    ,STRING_AGG(locSC2.SNM, ' & ')
     + '''s records say student is going to ' + locNS2.SNM AS [Description]
 FROM STU AS s1
@@ -304,10 +312,15 @@ FROM STU
               AND COD.FC = 'CD'
               AND ADS.CD = COD.CD
 WHERE ADS.DT > '7/1/2022'
+        --07 - Dangerous Obj. Possessed/Furnish 48900(b)
     AND ('07' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+        --18 - Firearm, Imitation 48900(m)
         OR '18' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+        --25 - Firearm: Possessed/Sold/Furnish 48915(c)(1)
         OR '25' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+        --26 - Knife: Brandished 48915(c)(2)
         OR '26' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5)
+        --31 - Dangerous Object 48915(a)(1)B
         OR '31' IN (ADS.CD, ADS.CD2, ADS.CD3, ADS.CD4, ADS.CD5))
     AND ADS.WT = ''
     AND STU.SC = @SchoolCode
@@ -378,6 +391,7 @@ FROM STU
     LEFT JOIN PGM
           ON  PGM.PID = STU.ID
               AND PGM.DEL = 0
+              --LIP Program codes
               AND PGM.CD BETWEEN '300' AND '307'
               AND GETDATE() BETWEEN PGM.ESD AND ISNULL(PGM.EED, '1/1/9999')
 WHERE STU.DEL = 0
@@ -451,6 +465,7 @@ WHERE MST.DEL = 0
     AND CRS.DEL = 0
     AND MST.ST NOT IN ('X', 'Z')
     AND MST.TEP = ''
+    --CTE State Course IDs
     AND CRS.C3 BETWEEN 7000 AND 8999
     AND @SchoolCode = MST.SC  
   ```
@@ -557,6 +572,7 @@ FROM STU
               AND STU.SN = ATT.SN
               AND ATT.DEL = 0
               AND ATT.DT = DAY.DT
+              --Complete/Incomplete Independent Study absence codes
               AND ATT.AL IN ('I', 'K')
 WHERE STU.DEL = 0
     AND ((ATT.DT IS NULL
@@ -1083,6 +1099,7 @@ FROM STU
               AND LAC.DEL = 0
 WHERE STU.DEL = 0
     AND LAC.DEL = 0
+    --RFEP
     AND STU.LF = 'R'
     AND LAC.RD1 IS NULL
     AND RTRIM(STU.CID) <> ''
@@ -1225,6 +1242,7 @@ FROM STU
               AND COD.FC = 'BCU'
               AND COD.CD = STU.BCU
 WHERE STU.DEL = 0
+    --US, Puerto Rico, Unknown, or Blank
     AND STU.BCU NOT IN ('US', 'PR', 'UU', '')
     AND STU.TG IN ('', ' ')
     AND LAC.USS IS NULL
@@ -1256,6 +1274,7 @@ FROM STU
     INNER JOIN PGM
           ON  PGM.PID = STU.ID
               AND PGM.DEL = 0
+              --Homeless program code
               AND PGM.CD = '191'
               AND ISNULL(PGM.ESD, '1/1/9999') <= GETDATE()
               AND ISNULL(PGM.EED, '1/1/9999') >= GETDATE()
@@ -1305,6 +1324,7 @@ FROM STU
     LEFT JOIN PGM
           ON  PGM.PID = STU.ID
               AND PGM.DEL = 0
+              --Homeless program code
               AND PGM.CD = '191'
               AND ISNULL(PGM.ESD, '1/1/9999') <= GETDATE()
               AND ISNULL(PGM.EED, '1/1/9999') >= GETDATE()
@@ -1386,6 +1406,7 @@ FROM STU
 WHERE STU.DEL = 0
     AND STU.TG IN ('I', '', ' ')
     AND DSP.DY = 0
+    --Suspension, in-house suspension, teacher suspension
     AND DSP.DS IN ('SUS', 'IHS', 'TSUS')
     AND ADS.DT >= DATEADD(MONTH, -10, GETDATE())
     AND STU.SC = @SchoolCode
